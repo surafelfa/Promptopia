@@ -1,10 +1,9 @@
 import Prompt from "@models/prompt";
 import { connectToDB } from "@utils/database";
-
+import { getServerSession } from "next-auth";
 export const GET = async (request, { params }) => {
   try {
     await connectToDB();
-
     const prompt = await Prompt.findById(params.id).populate("creator");
     if (!prompt) return new Response("Prompt Not Found", { status: 404 });
 
@@ -38,8 +37,19 @@ export const PATCH = async (request, { params }) => {
     return new Response("Error Updating Prompt", { status: 500 });
   }
 };
-
+// protected API route
 export const DELETE = async (request, { params }) => {
+  const session = await getServerSession(request);
+  if (!session) {
+    return new Response(
+      JSON.stringify({
+        error: "unauthorized",
+      }),
+      {
+        status: 401,
+      }
+    );
+  }
   try {
     await connectToDB();
 
